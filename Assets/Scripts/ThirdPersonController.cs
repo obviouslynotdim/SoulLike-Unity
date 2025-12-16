@@ -122,9 +122,13 @@ namespace StarterAssets
             }
         }
 
+        // Player Controller Parameters;
+        private PlayerController playerController;
 
         private void Awake()
         {
+            playerController = gameObject.GetComponent<PlayerController>();
+
             // get a reference to our main camera
             if (_mainCamera == null)
             {
@@ -213,6 +217,9 @@ namespace StarterAssets
 
         private void Move()
         {
+            if (playerController.isEquipping)
+                return;
+
             // set target speed based on move speed, sprint speed and if sprint is pressed
             float targetSpeed = _input.sprint ? SprintSpeed : MoveSpeed;
 
