@@ -1,43 +1,137 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class healthBar : MonoBehaviour
+public class HealthBar : MonoBehaviour
 {
-    public Slider healthSlider;
-    public Slider easeHealthSlider;
-    public float maxHealth = 100f;
-    public float health;
-    private float lerpSpeed = 0.05f;
+    [Header("Health Settings")]
+    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private Image realHealthBar;
+    [SerializeField] private Image emptyHealthBar;
 
-    // Start is called before the first frame update
-    void Start()
+    [Header("Stamina Settings")]
+    [SerializeField] private float maxStamina = 100f;
+    [SerializeField] private Image realStaminaBar;
+    [SerializeField] private Image emptyStaminaBar;
+    [SerializeField] private float staminaRegenDelay = 0.75f;
+
+    public float CurrentHealth => _currentHealth;
+    public float CurrentStamina => _currentStamina;
+
+    private float _currentHealth;
+    private float _currentStamina;
+    private float _regenTimer;
+
+    private void Awake()
     {
-        health = maxHealth;
+        maxHealth = Mathf.Max(1f, maxHealth);
+        maxStamina = Mathf.Max(1f, maxStamina);
+        _currentHealth = maxHealth;
+        _currentStamina = maxStamina;
+
+        UpdateHealthUI();
+        UpdateStaminaUI();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (healthSlider.value != health)
+        if (_regenTimer > 0f)
         {
-            healthSlider.value = health;
-        }
-
-        if (Input.GetKeyUp(KeyCode.G))
-        {
-            takeDamage(10);
-        }
-
-        if (healthSlider.value != easeHealthSlider.value)
-        {
-            easeHealthSlider.value = Mathf.Lerp(easeHealthSlider.value, health, lerpSpeed * Time.deltaTime);
+            _regenTimer -= Time.deltaTime;
         }
     }
 
-    void takeDamage(float damage)
+    public void TakeDamage(float amount)
     {
-        health -= damage;
+        if (amount <= 0f) return;
+        SetHealth(_currentHealth - amount);
+    }
+
+    public void Heal(float amount)
+    {
+        if (amount <= 0f) return;
+        SetHealth(_currentHealth + amount);
+    }
+
+    public void SetHealth(float value)
+    {
+        _currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+        UpdateHealthUI();
+
+        if (_currentHealth <= 0f)
+        {
+            // Hook for death handling (respawn, game over, etc.)
+        }
+    }
+
+    public bool TryConsumeStamina(float amount)
+    {
+        if (amount <= 0f) return true;
+        if (_currentStamina < amount) return false;
+
+        _currentStamina -= amount;
+        _regenTimer = staminaRegenDelay;
+        UpdateStaminaUI();
+        return true;
+    }
+
+    public void DeductStamina(float amount)
+    {
+        if (amount <= 0f) return;
+
+        _currentStamina = Mathf.Max(0f, _currentStamina - amount);
+        _regenTimer = staminaRegenDelay;
+        UpdateStaminaUI();
+    }
+
+    public void RecoverStamina(float amount)
+    {
+        if (amount <= 0f) return;
+        if (_regenTimer > 0f) return;
+
+        _currentStamina = Mathf.Min(maxStamina, _currentStamina + amount);
+        UpdateStaminaUI();
+    }
+
+    public bool HasStamina(float amount = 0.01f)
+    {
+        return _currentStamina >= amount;
+    }
+
+    private void UpdateHealthUI()
+    {
+        if (realHealthBar != null)
+        {
+            realHealthBar.fillAmount = Mathf.InverseLerp(0f, maxHealth, _currentHealth);
+        }
+
+        if (emptyHealthBar != null)
+        {
+            emptyHealthBar.fillAmount = 1f;
+        }
+    }
+
+    private void UpdateStaminaUI()
+    {
+        if (realStaminaBar != null)
+        {
+            realStaminaBar.fillAmount = Mathf.InverseLerp(0f, maxStamina, _currentStamina);
+        }
+
+        if (emptyStaminaBar != null)
+        {
+            emptyStaminaBar.fillAmount = 1f;
+        }
+    }
+
+    private void OnValidate()
+    {
+        maxHealth = Mathf.Max(1f, maxHealth);
+        maxStamina = Mathf.Max(1f, maxStamina);
+
+        if (Application.isPlaying)
+        {
+            UpdateHealthUI();
+            UpdateStaminaUI();
+        }
     }
 }
