@@ -105,6 +105,7 @@ namespace StarterAssets
         private CharacterController _controller;
         private StarterAssetsInputs _input;
         private GameObject _mainCamera;
+        private PlayerController _playerController;
 
         private const float _threshold = 0.01f;
 
@@ -145,6 +146,9 @@ namespace StarterAssets
             _hasAnimator = TryGetComponent(out _animator);
             _controller = GetComponent<CharacterController>();
             _input = GetComponent<StarterAssetsInputs>();
+
+
+            _playerController = GetComponent<PlayerController>(); // added
 #if ENABLE_INPUT_SYSTEM 
             _playerInput = GetComponent<PlayerInput>();
 #else
@@ -220,10 +224,10 @@ namespace StarterAssets
         private void Move()
         {
             if (playerController.isEquipping ||
-        playerController.isBlocking ||
-        playerController.isAttacking ||
-        playerController.isRolling)
-        return;
+            playerController.isBlocking ||
+            playerController.isAttacking ||
+            playerController.isRolling)
+            return;
 
 
             // set target speed based on move speed, sprint speed and if sprint is pressed
@@ -384,6 +388,8 @@ namespace StarterAssets
                 GroundedRadius);
         }
 
+
+
         private void OnFootstep(AnimationEvent animationEvent)
         {
             if (animationEvent.animatorClipInfo.weight > 0.5f)
@@ -401,6 +407,21 @@ namespace StarterAssets
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
                 AudioSource.PlayClipAtPoint(LandingAudioClip, transform.TransformPoint(_controller.center), FootstepAudioVolume);
+            }
+        }
+
+        private void OnAnimatorMove()
+        {
+            // If we are rolling, let the animation drive the movement (Root Motion)
+            if (_playerController != null && _playerController.isRolling)
+            {
+                _controller.Move(_animator.deltaPosition);
+            }
+            else
+            {
+                // If we are jumping or walking, ignore the Root Motion's position blocking
+                // This allows the script's Jump velocity to work again
+                _animator.ApplyBuiltinRootMotion();
             }
         }
     }
