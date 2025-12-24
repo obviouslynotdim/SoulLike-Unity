@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour
         Roll();
 
         // Apply root motion for rolling, attacking, blocking, or equipping
-        playerAnim.applyRootMotion = isRolling || isAttacking || isBlocking || isEquipping;
+        playerAnim.applyRootMotion = isRolling || isAttacking || isBlocking;
     }
 
 
