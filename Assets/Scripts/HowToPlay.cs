@@ -7,14 +7,12 @@ public class HowToPlayUIManager : MonoBehaviour
     public GameObject howToAttackPanel;
     public GameObject functionalityPanel;
 
-    // Called when Continue button is pressed
     public void ShowFunctionalityScreen()
     {
         howToAttackPanel.SetActive(false);
         functionalityPanel.SetActive(true);
     }
 
-    // Optional: go back to attack screen
     public void ShowHowToAttackScreen()
     {
         functionalityPanel.SetActive(false);
@@ -23,6 +21,7 @@ public class HowToPlayUIManager : MonoBehaviour
 
     public void StartGame()
     {
-        SceneManager.LoadScene("Gameplay");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("GameplayScene");
     }
 }
