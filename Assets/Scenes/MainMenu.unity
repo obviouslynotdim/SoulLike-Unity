@@ -3125,7 +3125,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ac0ededf07957af4685202ef48afba59, type: 2}
   m_sharedMaterial: {fileID: -7532688068997138134, guid: ac0ededf07957af4685202ef48afba59, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: -7532688068997138134, guid: ac0ededf07957af4685202ef48afba59, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -6668,7 +6669,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fc83d488570c81742b70b228ebbb25f7, type: 2}
   m_sharedMaterial: {fileID: -6676713160673128322, guid: fc83d488570c81742b70b228ebbb25f7, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: -6676713160673128322, guid: fc83d488570c81742b70b228ebbb25f7, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -8289,7 +8291,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: ac0ededf07957af4685202ef48afba59, type: 2}
   m_sharedMaterial: {fileID: -7532688068997138134, guid: ac0ededf07957af4685202ef48afba59, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: -7532688068997138134, guid: ac0ededf07957af4685202ef48afba59, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
