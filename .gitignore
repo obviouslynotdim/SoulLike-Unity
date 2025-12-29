@@ -100,3 +100,4 @@ Assets/MemoryCaptures/
 # Plastic SCM
 PlasticSCM/
 .plastic/
+Assets/Scripts/HealthBar.cs
