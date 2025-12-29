@@ -5,8 +5,9 @@ using UnityEngine.AI;
 public class HealthSystem : MonoBehaviour
 {
     [SerializeField] private float health = 100f;
-    [SerializeField] private float knockbackForce = 5f; // How far the enemy slides back
-    [SerializeField] private float stunDuration = 0.5f; // How long they stop moving
+    [SerializeField] private float maxHealth = 100f; // Added maxHealth for calculations
+    [SerializeField] private float knockbackForce = 5f;
+    [SerializeField] private float stunDuration = 0.5f;
 
     private Animator enemyAnim;
     private NavMeshAgent agent;
@@ -14,11 +15,15 @@ public class HealthSystem : MonoBehaviour
 
     void Start()
     {
+        maxHealth = health; // Set maxHealth to starting health
         enemyAnim = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
     }
 
     public bool IsDead() => isDead;
+
+    // Helper for the Boss UI to get a 0-1 value for the slider
+    public float GetHealthPercentage() => health / maxHealth;
 
     public void TakeDamage(float damage, Vector3 attackerPosition)
     {
@@ -35,7 +40,6 @@ public class HealthSystem : MonoBehaviour
         {
             if (enemyAnim != null) enemyAnim.SetTrigger("Hit");
 
-            // Stop current movement and apply knockback
             StopAllCoroutines();
             StartCoroutine(ApplyHitEffects(attackerPosition));
         }
@@ -46,23 +50,17 @@ public class HealthSystem : MonoBehaviour
         if (agent != null && agent.isActiveAndEnabled)
         {
             agent.isStopped = true;
-
-            // KNOCKBACK LOGIC
-            // Calculate direction away from the attacker
             Vector3 knockbackDir = (transform.position - attackerPosition).normalized;
 
-            // Move the agent manually for a brief moment
             float timer = 0;
-            while (timer < 0.2f) // Apply force over 0.2 seconds
+            while (timer < 0.2f)
             {
                 agent.Move(knockbackDir * knockbackForce * Time.deltaTime);
                 timer += Time.deltaTime;
                 yield return null;
             }
 
-            // STUN LOGIC
             yield return new WaitForSeconds(stunDuration);
-
             if (!isDead) agent.isStopped = false;
         }
     }
@@ -79,7 +77,6 @@ public class HealthSystem : MonoBehaviour
         }
 
         if (enemyAnim != null) enemyAnim.SetTrigger("Die");
-
         if (TryGetComponent(out Collider col)) col.enabled = false;
 
         Invoke("DisableAgent", 0.1f);

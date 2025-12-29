@@ -5,10 +5,8 @@ public class BossWeapon : MonoBehaviour
     [Header("Weapon Settings")]
     [SerializeField] private int baseDamage = 20;
     [SerializeField] private Collider weaponCollider;
-    [SerializeField] private float knockbackForce = 500f;
 
     private bool isActive = false;
-    private float activationDuration;
     private float activationTimer;
     private int currentDamage;
 
@@ -17,9 +15,12 @@ public class BossWeapon : MonoBehaviour
         if (weaponCollider == null)
             weaponCollider = GetComponent<Collider>();
 
-        // Disable collider initially
+        // Ensure it is a trigger and starts off
         if (weaponCollider != null)
+        {
+            weaponCollider.isTrigger = true;
             weaponCollider.enabled = false;
+        }
     }
 
     private void Update()
@@ -27,17 +28,13 @@ public class BossWeapon : MonoBehaviour
         if (isActive)
         {
             activationTimer -= Time.deltaTime;
-            if (activationTimer <= 0)
-            {
-                DeactivateWeapon();
-            }
+            if (activationTimer <= 0) DeactivateWeapon();
         }
     }
 
     public void ActivateWeapon(float duration, int damageOverride = 0)
     {
         isActive = true;
-        activationDuration = duration;
         activationTimer = duration;
         currentDamage = damageOverride > 0 ? damageOverride : baseDamage;
 
@@ -52,32 +49,21 @@ public class BossWeapon : MonoBehaviour
             weaponCollider.enabled = false;
     }
 
-    private void OnTriggerEnter(Collider collision)
+    private void OnTriggerEnter(Collider other)
     {
         if (!isActive) return;
 
-        // Check if hit the player
-        if (collision.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
-            PlayerController playerController = collision.GetComponent<PlayerController>();
-            if (playerController != null)
+            PlayerController player = other.GetComponent<PlayerController>();
+            if (player != null)
             {
-                playerController.TakeDamage(currentDamage);
+                // 1. Send damage to the player
+                player.TakeDamage(currentDamage);
 
-                // Apply knockback
-                Rigidbody playerRb = collision.GetComponent<Rigidbody>();
-                if (playerRb != null)
-                {
-                    Vector3 knockbackDirection = (collision.transform.position - transform.position).normalized;
-                    playerRb.velocity = Vector3.zero;
-                    playerRb.AddForce(knockbackDirection * knockbackForce, ForceMode.Impulse);
-                }
+                // 2. Deactivate immediately so the boss doesn't hit multiple times in one swing
+                DeactivateWeapon();
             }
-
-            // Deactivate after hitting to prevent multiple hits
-            DeactivateWeapon();
         }
     }
-
-    public bool IsActive() => isActive;
 }

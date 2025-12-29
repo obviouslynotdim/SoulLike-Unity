@@ -37,7 +37,16 @@ public class HealthBar : MonoBehaviour
         if (_regenTimer > 0f)
         {
             _regenTimer -= Time.deltaTime;
+            return;
         }
+
+        // Auto stamina regen
+        _currentStamina = Mathf.Min(
+            maxStamina,
+            _currentStamina + (8f * Time.deltaTime)
+        );
+
+        UpdateStaminaUI();
     }
 
     // Added for compatibility with boss/other systems
@@ -88,19 +97,21 @@ public class HealthBar : MonoBehaviour
     public void DeductStamina(float amount)
     {
         if (amount <= 0f) return;
-
         _currentStamina = Mathf.Max(0f, _currentStamina - amount);
-        _regenTimer = staminaRegenDelay;
+        _regenTimer = staminaRegenDelay; // Reset the delay whenever stamina is used
         UpdateStaminaUI();
     }
 
-    public void RecoverStamina(float amount)
+    public void Regenerate(float healthAmount, float staminaAmount)
     {
-        if (amount <= 0f) return;
-        if (_regenTimer > 0f) return;
-
-        _currentStamina = Mathf.Min(maxStamina, _currentStamina + amount);
-        UpdateStaminaUI();
+        // Only regenerate if the delay timer has finished
+        if (_regenTimer <= 0f)
+        {
+            _currentStamina = Mathf.Min(maxStamina, _currentStamina + staminaAmount);
+            _currentHealth = Mathf.Min(maxHealth, _currentHealth + healthAmount);
+            UpdateHealthUI();
+            UpdateStaminaUI();
+        }
     }
 
     public bool HasStamina(float amount = 0.01f)

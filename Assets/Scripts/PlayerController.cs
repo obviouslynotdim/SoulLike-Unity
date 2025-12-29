@@ -1,10 +1,13 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Animator playerAnim;
-
     [SerializeField] private HealthBar healthBar;
+
+    [Header("Game Over UI")]
+    [SerializeField] private GameObject gameOverUI;
 
     [Header("Weapon")]
     [SerializeField] private GameObject sword;
@@ -22,40 +25,98 @@ public class PlayerController : MonoBehaviour
     [Header("Roll")]
     public float rollCooldown = 1.2f;
     private float lastRollTime;
+    private float equipTimeout = 1.2f;
 
     void Start()
     {
-        if (healthBar == null)
-        {
-            healthBar = FindObjectOfType<HealthBar>();
-        }
+        if (healthBar == null) healthBar = FindObjectOfType<HealthBar>();
+
+        // Ensure UI is hidden at start
+        if (gameOverUI != null) gameOverUI.SetActive(false);
     }
 
     void Update()
     {
-        timeSinceAttack += Time.deltaTime; // Existing line
+        // MASTER SWITCH: If dead, stop all local input logic
+        if (healthBar != null && healthBar.CurrentHealth <= 0) return;
+
+        timeSinceAttack += Time.deltaTime;
 
         Attack();
         Equip();
         Block();
         Roll();
 
-        // Apply root motion for rolling, attacking, blocking, or equipping
         playerAnim.applyRootMotion = isRolling || isAttacking || isBlocking;
     }
 
+    public void TakeDamage(int damage)
+    {
+        if (healthBar != null && healthBar.CurrentHealth > 0)
+        {
+            healthBar.TakeDamage(damage);
 
+            if (healthBar.CurrentHealth <= 0)
+            {
+                Die();
+            }
+            else
+            {
+                playerAnim.SetTrigger("TakeDamage");
+            }
+        }
+    }
+
+    private void Die()
+    {
+        // 1. Play Death Animation
+        if (playerAnim != null) playerAnim.SetTrigger("Die");
+
+        // 2. DO NOT disable CharacterController here.
+        // Instead, we let the MASTER SWITCH in Update() stop the movements.
+        // This allows the Starter Assets gravity to keep pulling you down to the floor.
+
+        // 3. UI Logic: Show "You Died" and unlock cursor
+        if (gameOverUI != null)
+        {
+            gameOverUI.SetActive(true);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+        // Reset combat states
+        isAttacking = false;
+        isRolling = false;
+        isBlocking = false;
+
+        Debug.Log("Player has died!");
+    }
+    // --- UI BUTTON FUNCTIONS ---
+    public void TryAgain()
+    {
+        Time.timeScale = 1f;
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    public void MainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("MainMenuScene");
+    }
+
+    // --- EXISTING COMBAT LOGIC ---
     private void Equip()
     {
         if (isAttacking || isRolling) return;
-
         if (Input.GetKeyDown(KeyCode.R) && playerAnim.GetBool("Grounded"))
         {
             isEquipping = true;
+            Invoke(nameof(ForceEndEquip), equipTimeout);
             playerAnim.SetTrigger("Equip");
         }
     }
 
+    private void ForceEndEquip() => isEquipping = false;
 
     public void ActiveWeapon()
     {
@@ -65,10 +126,7 @@ public class PlayerController : MonoBehaviour
         isEquipped = equip;
     }
 
-    public void Equipped() // animation event
-    {
-        isEquipping = false;
-    }
+    public void Equipped() => isEquipping = false;
 
     private void Block()
     {
@@ -88,81 +146,38 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Q) && playerAnim.GetBool("Grounded") && !isRolling)
         {
-            // Check if we have enough stamina before allowing the roll
             if (healthBar != null && !healthBar.HasStamina(20f)) return;
+            if (Time.time <= lastRollTime + rollCooldown) return;
 
-            if (Time.time > lastRollTime + rollCooldown)
-            {
+            Vector3 camForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
+            Vector3 camRight = Vector3.Scale(Camera.main.transform.right, new Vector3(1, 0, 1)).normalized;
+            Vector3 inputDir = (camForward * Input.GetAxisRaw("Vertical") + camRight * Input.GetAxisRaw("Horizontal")).normalized;
 
-                // 1. Get movement input
-                float h = Input.GetAxisRaw("Horizontal");
-                float v = Input.GetAxisRaw("Vertical");
-                Vector3 inputDir = new Vector3(h, 0, v).normalized;
+            if (inputDir.magnitude > 0.1f) transform.rotation = Quaternion.LookRotation(inputDir);
 
-                // 2. If moving, rotate to face that direction immediately
-                if (inputDir.magnitude > 0.1f)
-                {
-                    transform.rotation = Quaternion.LookRotation(inputDir);
-                }
-                // If no input, the player just rolls in their current forward direction
-
-                // 3. Start the roll
-                isRolling = true;
-                lastRollTime = Time.time;
-                playerAnim.SetTrigger("Roll");
-
-                if (healthBar != null) healthBar.DeductStamina(20f);
-
-                // 4. Force stop block
-                isBlocking = false;
-                playerAnim.SetBool("Block", false);
-            }
+            isRolling = true;
+            lastRollTime = Time.time;
+            playerAnim.SetTrigger("Roll");
+            healthBar?.DeductStamina(20f);
+            isBlocking = false;
+            playerAnim.SetBool("Block", false);
         }
     }
 
-    public void EndRoll() // animation event
-    {
-        isRolling = false;
-    }
+    public void EndRoll() => isRolling = false;
 
     private void Attack()
     {
-        if (Input.GetMouseButtonDown(0) &&
-            playerAnim.GetBool("Grounded") &&
-            timeSinceAttack > 0.8f &&
-            isEquipped &&
-            !isRolling)
+        if (Input.GetMouseButtonDown(0) && playerAnim.GetBool("Grounded") && timeSinceAttack > 0.8f && isEquipped && !isRolling)
         {
             if (healthBar != null && !healthBar.HasStamina(10f)) return;
-
-            currentAttack++;
-            isAttacking = true;
-
-            if (currentAttack > 3) currentAttack = 1;
-            if (timeSinceAttack > 1f) currentAttack = 1;
-
+            currentAttack = (timeSinceAttack > 1.2f || currentAttack >= 3) ? 1 : currentAttack + 1;
             playerAnim.SetTrigger("Attack" + currentAttack);
             timeSinceAttack = 0f;
-
-            if (healthBar != null) healthBar.DeductStamina(10f);
+            isAttacking = true;
+            healthBar?.DeductStamina(10f);
         }
     }
 
-    public void ResetAttack() // animation event
-    {
-        isAttacking = false;
-    }
-
-    public void TakeDamage(int damage)
-    {
-        // You can expand this with health system integration
-        Debug.Log("Player took " + damage + " damage!");
-        
-        // Play damage animation
-        if (playerAnim != null)
-        {
-            playerAnim.SetTrigger("TakeDamage");
-        }
-    }
-
+    public void ResetAttack() => isAttacking = false;
 }

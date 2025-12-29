@@ -57,9 +57,6 @@ namespace StarterAssets
         [Tooltip("Stamina cost for jumping")]
         public float jumpStaminaCost = 15f;
 
-        [Tooltip("Stamina recovery per second when idle")]
-        public float staminaRecoveryPerSecond = 8f;
-
         [Header("Player Grounded")]
         [Tooltip("If the character is grounded or not. Not part of the CharacterController built in grounded check")]
         public bool Grounded = true;
@@ -184,20 +181,16 @@ namespace StarterAssets
 
         private void Update()
         {
+            _hasAnimator = TryGetComponent(out _animator);
 
+            // 1. Always run gravity and ground checks so you fall to the floor when you die
             JumpAndGravity();
             GroundedCheck();
-            Move();
-            if (healthBar != null && _input != null)
-            {
-                // Make sure we aren't moving AND holding the sprint key
-                bool isSprinting = _input.sprint && _input.move.magnitude > 0.1f;
 
-                if (!isSprinting)
-                {
-                    // This line sends the 15 per second to your HealthBar script
-                    healthBar.RecoverStamina(staminaRecoveryPerSecond * Time.deltaTime);
-                }
+            // 2. Only allow movement if the player is alive
+            if (_playerController != null && _playerController.GetComponent<HealthBar>().CurrentHealth > 0)
+            {
+                Move();
             }
         }
 
@@ -435,20 +428,20 @@ namespace StarterAssets
             }
         }
 
-        private void OnAnimatorMove()
-        {
-            // If we are rolling, let the animation drive the movement (Root Motion)
-            if (_playerController != null && _playerController.isRolling)
-            {
-                _controller.Move(_animator.deltaPosition);
-            }
-            else
-            {
-                // If we are jumping or walking, ignore the Root Motion's position blocking
-                // This allows the script's Jump velocity to work again
-                _animator.ApplyBuiltinRootMotion();
-            }
-        }
+        //private void OnAnimatorMove()
+        //{
+        //    // If we are rolling, let the animation drive the movement (Root Motion)
+        //    if (_playerController != null && _playerController.isRolling)
+        //    {
+        //        _controller.Move(_animator.deltaPosition);
+        //    }
+        //    else
+        //    {
+        //        // If we are jumping or walking, ignore the Root Motion's position blocking
+        //        // This allows the script's Jump velocity to work again
+        //        _animator.ApplyBuiltinRootMotion();
+        //    }
+        //}
 
     }
 }
