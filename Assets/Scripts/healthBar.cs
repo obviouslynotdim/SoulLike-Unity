@@ -37,16 +37,7 @@ public class HealthBar : MonoBehaviour
         if (_regenTimer > 0f)
         {
             _regenTimer -= Time.deltaTime;
-            return;
         }
-
-        // Auto stamina regen
-        _currentStamina = Mathf.Min(
-            maxStamina,
-            _currentStamina + (8f * Time.deltaTime)
-
-        );
-        UpdateStaminaUI();
     }
 
     // Added for compatibility with boss/other systems
