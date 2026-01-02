@@ -1,9 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
 public class MainMenuUIManager : MonoBehaviour
 {
+    // ✅ STATIC FLAGS (must be inside the class)
+    public static bool openMainMenuDirectly;
+    public static bool openHowToPlayDirectly;
+
     [Header("Panels")]
     public GameObject mainScreenPanel;
     public GameObject mainMenuPanel;
@@ -17,8 +21,23 @@ public class MainMenuUIManager : MonoBehaviour
 
     void Start()
     {
-        ShowMainScreen();
         fadeImage.color = new Color(0, 0, 0, 0);
+
+        // ✅ Handle scene entry logic
+        if (openHowToPlayDirectly)
+        {
+            ShowHowToPlay();
+            openHowToPlayDirectly = false;
+        }
+        else if (openMainMenuDirectly)
+        {
+            ShowMainMenu();
+            openMainMenuDirectly = false;
+        }
+        else
+        {
+            ShowMainScreen();
+        }
     }
 
     // ---------- SCREEN CONTROL ----------
@@ -46,6 +65,7 @@ public class MainMenuUIManager : MonoBehaviour
         mainMenuPanel.SetActive(false);
         howToPlayPanel.SetActive(true);
         functionalityPanel.SetActive(false);
+        exitConfirmPanel.SetActive(false);
     }
 
     // ---------- EXIT FLOW ----------
@@ -68,7 +88,7 @@ public class MainMenuUIManager : MonoBehaviour
     // ---------- SAVE SETTINGS ----------
     void SaveSettings()
     {
-        PlayerPrefs.SetFloat("MusicVolume", 1f); // example
+        PlayerPrefs.SetFloat("MusicVolume", 1f);
         PlayerPrefs.SetInt("HasLaunched", 1);
         PlayerPrefs.Save();
     }
