@@ -13,6 +13,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject sword;
     [SerializeField] private GameObject swordOnShoulder;
 
+    [Header("Potion Settings")]
+    [SerializeField] private int potionCount = 3;
+    [SerializeField] private float healAmount = 30f;
+
     public bool isEquipping;
     public bool isEquipped;
     public bool isBlocking;
@@ -31,7 +35,9 @@ public class PlayerController : MonoBehaviour
     {
         if (healthBar == null) healthBar = FindObjectOfType<HealthBar>();
 
-        // Ensure UI is hidden at start
+        // Update the UI immediately at the start
+        healthBar?.UpdatePotionUI(potionCount);
+
         if (gameOverUI != null) gameOverUI.SetActive(false);
     }
 
@@ -46,6 +52,7 @@ public class PlayerController : MonoBehaviour
         Equip();
         Block();
         Roll();
+        Heal();
 
         playerAnim.applyRootMotion = isRolling || isAttacking || isBlocking;
     }
@@ -165,6 +172,21 @@ public class PlayerController : MonoBehaviour
     }
 
     public void EndRoll() => isRolling = false;
+
+    private void Heal()
+    {
+        // Check for H key, potions remaining, and if player is hurt
+        if (Input.GetKeyDown(KeyCode.H) && potionCount > 0 && healthBar.CurrentHealth < 100)
+        {
+            potionCount--;
+            healthBar.Heal(healAmount);
+
+            // Update the UI text after using a potion
+            healthBar.UpdatePotionUI(potionCount);
+
+            // Optional: playerAnim.SetTrigger("Heal");
+        }
+    }
 
     private void Attack()
     {
