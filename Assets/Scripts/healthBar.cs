@@ -32,14 +32,6 @@ public class HealthBar : MonoBehaviour
         UpdateStaminaUI();
     }
 
-    // private void Update()
-    // {
-    //     if (_regenTimer > 0f)
-    //     {
-    //         _regenTimer -= Time.deltaTime;
-    //     }
-    // }
-
     private void Update()
     {
         if (_regenTimer > 0f)
