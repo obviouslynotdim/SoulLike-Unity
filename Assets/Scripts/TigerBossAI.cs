@@ -1,8 +1,12 @@
 using UnityEngine;
 using UnityEngine.AI;
+using TMPro;
 
 public class TigerBossAI : MonoBehaviour
 {
+    [Header("Quest UI")]
+    [SerializeField] private TMP_Text bossQuestText;
+
     [Header("Required Components")]
     [SerializeField] private Animator animator;
     [SerializeField] private NavMeshAgent navMeshAgent;
@@ -63,11 +67,21 @@ public class TigerBossAI : MonoBehaviour
     private void Update()
     {
         // MASTER SWITCH: If dead, stop all AI logic immediately
-        if (healthSystem != null && healthSystem.IsDead())
+        if (healthSystem != null && healthSystem.IsDead()) //
         {
             currentState = BossState.Dead;
+
+            // 3. Update the Quest Text here
+            if (bossQuestText != null)
+            {
+                bossQuestText.text = "Defeat boss (1/1)";
+                bossQuestText.color = Color.green; // Optional: change color to show completion
+            }
+
             // Optional: Hide UI after death
-            if (bossHealthUIPanel != null && bossHealthUIPanel.activeSelf) bossHealthUIPanel.SetActive(false);
+            if (bossHealthUIPanel != null && bossHealthUIPanel.activeSelf)
+                bossHealthUIPanel.SetActive(false);
+
             return;
         }
 
