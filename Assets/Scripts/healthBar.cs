@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,9 +13,6 @@ public class HealthBar : MonoBehaviour
     [SerializeField] private Image realStaminaBar;
     [SerializeField] private Image emptyStaminaBar;
     [SerializeField] private float staminaRegenDelay = 0.75f;
-
-    [Header("Item UI")]
-    [SerializeField] private TextMeshProUGUI potionText;
 
     public float CurrentHealth => _currentHealth;
     public float CurrentStamina => _currentStamina;
@@ -72,18 +68,8 @@ public class HealthBar : MonoBehaviour
 
     public void Heal(float amount)
     {
-        // Increase health but don't exceed maxHealth
-        _currentHealth = Mathf.Min(maxHealth, _currentHealth + amount);
-        UpdateHealthUI();
-        Debug.Log($"Player healed {amount}. Current Health: {_currentHealth}");
-    }
-
-    public void UpdatePotionUI(int count)
-    {
-        if (potionText != null)
-        {
-            potionText.text = "x" + count.ToString();
-        }
+        if (amount <= 0f) return;
+        SetHealth(_currentHealth + amount);
     }
 
     public void SetHealth(float value)
