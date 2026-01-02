@@ -1687,7 +1687,7 @@ GameObject:
   - component: {fileID: 815329640}
   - component: {fileID: 815329639}
   m_Layer: 5
-  m_Name: PotionCountText (1)
+  m_Name: PotionCountText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
