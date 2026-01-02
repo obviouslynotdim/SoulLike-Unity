@@ -49,7 +49,7 @@ In **The Blade: Twin Vengeance**, you take control of a master swordsman. The ga
 
 1.  **Clone the Repository:**
     ```bash
-    [git clone [https://github.com/yourusername/the-blade-twin-vengeance.git](https://github.com/yourusername/the-blade-twin-vengeance.git)](https://github.com/obviouslynotdim/SoulLike-Unity.git)
+    git clone [https://github.com/yourusername/the-blade-twin-vengeance.git](https://github.com/yourusername/the-blade-twin-vengeance.git)](https://github.com/obviouslynotdim/SoulLike-Unity.git)
     ```
 2.  **Open in Unity:** Recommended version: **Unity 2022.3 LTS**.
 3.  **Load the Scene:** Navigate to `Assets/Final Project` and open the **Main** scene.
